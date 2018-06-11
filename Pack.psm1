@@ -10,13 +10,18 @@ function Push-Package
         )
 
         $nugetVersion = gitversion /showvariable NuGetVersion
-        $commitsSinceVersionSource = gitversion /showvariable CommitsSinceVersionSource
+        $commitsSinceVersionSourcePadded = gitversion /showvariable CommitsSinceVersionSourcePadded
         $branchName = gitversion /showvariable BranchName
 
         $versionToApply =  $nuGetVersion
         if ($branchName -ne "master" -and $branchName -ne "develop" -and $commitsSinceVersionSource -ne 0)
         {
-            $versionToApply = "$nuGetVersion.$commitsSinceVersionSource"
+            $majorMinorPatch = gitversion /showvariable MajorMinorPatch
+            $nuGetPreReleaseTag = gitversion /showvariable NuGetPreReleaseTag
+
+            $subNugetVersion = $nuGetPreReleaseTag.Substring(0, $nuGetPreReleaseTag.Length - 4)
+            $subNugetVersion = $subNugetVersion.Replace("-", "")
+            $versionToApply = "$majorMinorPatch-$subNugetVersion$commitsSinceVersionSourcePadded"
         }
 
         nuget pack $NuSpecFile -Version $versionToApply
